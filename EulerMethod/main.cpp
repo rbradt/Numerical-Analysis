@@ -1,9 +1,6 @@
-// EulerMethod.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
 #include <vector>
-#include "Eigen/Core"
+#include "../Resources/Eigen/Core"
 
 using Eigen::Matrix;
 using Eigen::Vector;
@@ -90,4 +87,5 @@ int main()
     Euler_Method<double> a(func, -0.1, 0.1, -0.001);
     a.euler_method(1, 0);
     a.print();
+	std::cin.ignore(1000, '\n');
 }

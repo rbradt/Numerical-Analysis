@@ -11,3 +11,9 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
+Debug
+x64
+ALL_BUILD*
+EulerMethod.*
+NumericalAnalysisMethods.*
+ZERO_CHECK*
