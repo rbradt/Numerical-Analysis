@@ -14,9 +14,9 @@ _deps
 Debug
 x64
 ALL_BUILD*
-EulerMethod.*
 NumericalAnalysisMethods.*
 ZERO_CHECK*
 *.exe
+EulerMethod.v*
 EulerMethod/.vs
 .vs
