@@ -1,3 +1,3 @@
 # Numerical-Analysis
 
-Numerical analysis method file dump.
+Numerical analysis method file dump. :moyai:
