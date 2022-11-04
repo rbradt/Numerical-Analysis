@@ -4,9 +4,9 @@
 // One Dimensional Ligand Receptor Initial Value Problem
 class LR1D_IVP : public IVP<Matrix<double, 2, 1>> {
 private:
-    double ah1, bh2, v, h1, h2;             // parameters
-    coord<Matrix<double, 2, 1>>* init;      // initial condition
-    std::vector<double> u_n, v_n, t;        // solution
+    double ah1, bh2, v, h1, h2;                  // parameters
+    coord<Matrix<double, 2, 1>>* init;           // initial condition
+    std::vector<double> u_n, v_n, t;             // solution
     Euler_Method<Matrix<double, 2, 1>>* solver;  // initial value problem solver
 
     // f(x) = x^h1/(a^h1 + x^h1)
