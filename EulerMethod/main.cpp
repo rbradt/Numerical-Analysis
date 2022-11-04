@@ -1,91 +1,102 @@
-#include <iostream>
-#include <vector>
-#include "../Resources/Eigen/Core"
+#include "EulerMethod.hpp"
 
-using Eigen::Matrix;
-using Eigen::Vector;
 
-template <typename Y>
-class Euler_Method {
+// One Dimensional Ligand Receptor Initial Value Problem
+class LR1D_IVP : public IVP<Matrix<double, 2, 1>> {
 private:
-    struct coord {
-        Y y;
-        double x;
-        coord(Y _y, double _x) : y{ _y }, x{ _x } {};
-        coord(const coord* other) : y{ other->y }, x{ other->x } {};
-    };
-    Y (*f)(Y, double);
-    coord init;
-    double dx, a, b;
-    std::vector<coord*> pts;
+    double ah1, bh2, v, h1, h2;             // parameters
+    coord<Matrix<double, 2, 1>>* init;      // initial condition
+    std::vector<double> u_n, v_n, t;        // solution
+    Euler_Method<Matrix<double, 2, 1>>* s;  // initial value problem solver
 
-    bool inDomain(double x) {
-        return (dx > 0) ? x + dx < b + 0.0000001 : x + dx > a - 0.0000001;
+    // f(x) = x^h1/(a^h1 + x^h1)
+    double f(double x) {
+        double xh1 = pow(x, h1);
+        return xh1 / (ah1 + xh1);
     }
 
-    void clear() {
-        for (coord* v : pts)
-            delete v;
-        pts.clear();
-    }
+    // g(x) = b^h2/(b^h2 + x^h2)
+    double g(double x) { return bh2 / (bh2 + pow(x, h2)); }
 
 public:
-    Euler_Method(Y(*function)(Y, double), double a, double b, double increment) : f{ function }, init{new coord(1,1)}, a{ a }, b{ b }, dx{ increment } {}
+    LR1D_IVP(double a, double b, double v, double h1, double h2) : ah1{ pow(a, h1) }, bh2{ pow(b, h2) }, v{ v }, h1{ h1 }, h2{ h2 }, init{ nullptr }, s{ nullptr } {}
 
-    void function(Y(*function)(Y, double)) {
-
+    // set the various parameters of the initial value problem
+    void set_parameters(double a, double b, double _v, double _h1, double _h2) {
+        ah1 = pow(a, h1);
+        bh2 = pow(b, h2);
+        v = _v;
+        h1 = _h1;
+        h2 = _h2;
     }
 
-    void initial_condition(Y y_at_X0, double x0) {
-
+    // set the initial condition
+    void set_ic(Matrix<double, 2, 1> x0, double t0) {
+        if(init != nullptr)
+            delete init;
+        init = new coord<Matrix<double, 2, 1>>(x0, t0);
+        
+        u_n.clear();
+        v_n.clear();
+        t.clear();
+        parse(init);
     }
 
-    void domain(double lower_bound, double upper_bound) {
-
-    }
-
-    void increment(double increment) {
-
-    }
-
-    void euler_method(Y y0, double x0) {
-        if (a <= x0 && x0 <= b) {
-            if (!pts.empty())
-                clear();
-            pts.push_back(new coord(y0, x0));
-            while(inDomain(pts.back()->x)) {
-                coord* c = new coord(pts.back());
-                c->y = dx * f(c->y, c->x) + c->y;
-                c->x += dx;
-                pts.push_back(c);
-            }
+    // set the interval and increment
+    void set_interval(double a, double b, double increment) {
+        if (s == nullptr)
+            s = new Euler_Method<Matrix<double, 2, 1>>(this, a, b, increment);
+        else {
+            s->domain(a, b);
+            s->increment(increment);
         }
     }
 
-    void print() const {
-        for (coord* v : pts) {
-            std::cout << "(" << v->x << ", " << v->y << ")" << std::endl;
-        }
+    // retrieve the initial condition
+    coord<Matrix<double, 2, 1>>& get_ic() {
+        return *init;
     }
 
-    ~Euler_Method() {
-        clear();
+    // parse a single solution point
+    void parse(coord<Matrix<double, 2, 1>>* data) {
+        u_n.push_back(data->y(0, 0));
+        v_n.push_back(data->y(1, 0));
+        t.push_back(data->x);
+    }
+
+    // compute and display the full solution
+    void display_solution() {
+        s->compute();
+        plt::named_plot("u_n(t)", t, u_n);
+        plt::named_plot("v_n(t)", t, v_n);
+        plt::xlabel("Time");
+        plt::legend();
+        plt::grid(1);
+        plt::show();
+    }
+
+    // initial value problem
+    // x' = [u_n', v_n'] = [f(v_n) - u_n, v(g(u_n) - v_n)]
+    Matrix<double, 2, 1> operator() (Matrix<double, 2, 1> x, double t) {
+        x(0, 0) = f(x(1,0)) - x(0, 0);
+        x(1, 0) = v * (g(x(0,0)) - x(1, 0));
+        return x;
+    }
+
+    ~LR1D_IVP() {
+        delete init;
     }
 };
 
-double func(double y, double x) {
-    return 2*y*y + 2;
-}
+// g++ EulerMethod/main.cpp -I C:/Python310/include -I C:/python310/lib/site-packages/numpy/core/include -L C:\Python310\libs -lpython310
+// g++ EulerMethod/main.cpp -I <drive>:/<path>/Python310/include -I <drive>:/<path>/python310/lib/site-packages/numpy/core/include -L <drive>:/<path>\Python310\libs -lpython310
 
-Matrix<double,2,1> func2(Matrix<double, 2, 1> y, double x) {
-    y(1, 1) += y(1, 1);
-    return y;
-}
+int main() {
+    LR1D_IVP* f = new LR1D_IVP(0.5,0.5,1,2,2);
+    Matrix<double, 2, 1> y0(0,0);
+    f->set_ic(y0, 0);
+    f->set_interval(0, 100, 0.01);
+    f->display_solution();
 
-int main()
-{
-    Euler_Method<double> a(func, -0.1, 0.1, -0.001);
-    a.euler_method(1, 0);
-    a.print();
-	std::cin.ignore(1000, '\n');
+    delete f;
 }
