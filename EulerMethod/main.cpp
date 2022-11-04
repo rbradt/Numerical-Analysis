@@ -7,7 +7,7 @@ private:
     double ah1, bh2, v, h1, h2;             // parameters
     coord<Matrix<double, 2, 1>>* init;      // initial condition
     std::vector<double> u_n, v_n, t;        // solution
-    Euler_Method<Matrix<double, 2, 1>>* s;  // initial value problem solver
+    Euler_Method<Matrix<double, 2, 1>>* solver;  // initial value problem solver
 
     // f(x) = x^h1/(a^h1 + x^h1)
     double f(double x) {
@@ -19,7 +19,7 @@ private:
     double g(double x) { return bh2 / (bh2 + pow(x, h2)); }
 
 public:
-    LR1D_IVP(double a, double b, double v, double h1, double h2) : ah1{ pow(a, h1) }, bh2{ pow(b, h2) }, v{ v }, h1{ h1 }, h2{ h2 }, init{ nullptr }, s{ nullptr } {}
+    LR1D_IVP(double a, double b, double v, double h1, double h2) : ah1{ pow(a, h1) }, bh2{ pow(b, h2) }, v{ v }, h1{ h1 }, h2{ h2 }, init{ nullptr }, solver{ nullptr } {}
 
     // set the various parameters of the initial value problem
     void set_parameters(double a, double b, double _v, double _h1, double _h2) {
@@ -44,11 +44,11 @@ public:
 
     // set the interval and increment
     void set_interval(double a, double b, double increment) {
-        if (s == nullptr)
-            s = new Euler_Method<Matrix<double, 2, 1>>(this, a, b, increment);
+        if (solver == nullptr)
+            solver = new Euler_Method<Matrix<double, 2, 1>>(this, a, b, increment);
         else {
-            s->domain(a, b);
-            s->increment(increment);
+            solver->domain(a, b);
+            solver->increment(increment);
         }
     }
 
@@ -66,7 +66,7 @@ public:
 
     // compute and display the full solution
     void display_solution() {
-        s->compute();
+        solver->compute();
         plt::named_plot("u_n(t)", t, u_n);
         plt::named_plot("v_n(t)", t, v_n);
         plt::xlabel("Time");
@@ -85,6 +85,7 @@ public:
 
     ~LR1D_IVP() {
         delete init;
+        delete solver;
     }
 };
 
