@@ -1,3 +1,3 @@
 # Numerical-Analysis
 
-File dump for all of my numerical analysis methods.
+Numerical analysis method file dump.
